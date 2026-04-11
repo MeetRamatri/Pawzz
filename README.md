@@ -171,24 +171,15 @@ A multi-role platform connecting:
 ## ⚙️ Tech Stack (Suggested)
 
 ### Frontend
-- React / Next.js
+- React 
 - Tailwind CSS
 
 ### Backend
-- Node.js (Express) / Java (Spring Boot)
+- Node.js (Express) 
 
 ### Database
-- PostgreSQL
-- MongoDB (optional)
+- MongoDB
 
-### APIs
-- Google Maps API
-
-### Storage
-- AWS S3 / Cloudinary
-
-### Notifications
-- Firebase / Twilio
 
 ---
 
