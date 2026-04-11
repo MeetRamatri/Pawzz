@@ -190,5 +190,5 @@ A multi-role platform connecting:
 
 ---
 
-![UseCase Diagram](useCaseDiagram.png)
+![UseCase Diagram](UseCaseDiagram.png)
 ![Sequence Diagram](SequenceDiagram.png)
