@@ -180,13 +180,15 @@ A multi-role platform connecting:
 ### Database
 - MongoDB
 
-
 ---
 
 ## ☁️ Deployment
 
 - Frontend → Netlify
 - Backend → Render 
-- Database → Supabase 
+- Database → MongoDB 
 
 ---
+
+![UseCase Diagram](useCaseDiagram.png)
+![Sequence Diagram](SequenceDiagram.png)
