@@ -5,8 +5,12 @@ const {
   getMyRescueRequests,
   getNearbyPendingRequests,
   acceptRescueRequest,
+  getPublicRescueRequests,
 } = require('../controllers/rescueRequestController');
 const { protect, authorizeRoles } = require('../middleware/authMiddleware');
+
+// Public route for prototype mockup
+router.route('/public').get(getPublicRescueRequests);
 
 // Users can create and view their own requests
 router.route('/')

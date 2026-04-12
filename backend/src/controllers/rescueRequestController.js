@@ -63,6 +63,22 @@ const getNearbyPendingRequests = async (req, res) => {
   }
 };
 
+// @desc    Get all public ongoing/pending rescues (for prototype unauthenticated UI)
+// @route   GET /api/rescue-requests/public
+// @access  Public
+const getPublicRescueRequests = async (req, res) => {
+  try {
+    const requests = await RescueRequest.find()
+      .populate('user', 'name email')
+      .populate('assignedRescuer')
+      .sort({ createdAt: -1 });
+
+    res.json(requests);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // @desc    Accept a rescue request
 // @route   PUT /api/rescue-requests/:id/accept
 // @access  Private (rescuer only)
@@ -94,4 +110,5 @@ module.exports = {
   getMyRescueRequests,
   getNearbyPendingRequests,
   acceptRescueRequest,
+  getPublicRescueRequests,
 };

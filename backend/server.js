@@ -20,6 +20,7 @@ app.use('/api/auth', require('./src/routes/authRoutes'));
 app.use('/api/clinics', require('./src/routes/clinicRoutes'));
 app.use('/api/rescuers', require('./src/routes/rescuerRoutes'));
 app.use('/api/rescue-requests', require('./src/routes/rescueRequestRoutes'));
+app.use('/api/dashboard', require('./src/routes/dashboardRoutes'));
 app.use('/api/upload', require('./src/routes/uploadRoutes'));
 
 // Serve 'uploads' directory statically
