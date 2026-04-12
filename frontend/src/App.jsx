@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import FindVets from './pages/FindVets';
+import ClinicProfile from './pages/ClinicProfile';
 import { Search, AlertCircle, ArrowRight, UserCircle, BriefcaseMedical, ShieldCheck, MapPin, Star } from 'lucide-react';
 
 function Home() {
@@ -114,7 +115,7 @@ function Home() {
               <div key={clinic._id || index} className="organic-card overflow-hidden group hover:-translate-y-2 border-none">
                 <div className="h-64 overflow-hidden rounded-t-[1.5rem] bg-surface-container-highest relative">
                   <img 
-                    src={clinic.image || "https://images.unsplash.com/photo-1629851606558-89c0eaeb85ea?auto=format&fit=crop&q=80&w=800"} 
+                    src={clinic.image || "https://images.unsplash.com/photo-1596272875729-ed2ff7d6d9c5?auto=format&fit=crop&q=80&w=800"} 
                     alt={clinic.name} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
                   />
@@ -138,7 +139,7 @@ function Home() {
                       <span className="text-xs text-on-surface/50 self-center">+{clinic.services.length - 2} more</span>
                     )}
                   </div>
-                  <Link to="/clinics" className="block text-center w-full py-3 bg-surface-container-low hover:bg-primary border-none hover:text-white transition-colors rounded-xl font-semibold text-on-surface">
+                  <Link to={`/clinics/${clinic._id}`} className="block text-center w-full py-3 bg-surface-container-low hover:bg-primary border-none hover:text-white transition-colors rounded-xl font-semibold text-on-surface">
                     View Details
                   </Link>
                 </div>
@@ -249,6 +250,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/clinics" element={<FindVets />} />
+        <Route path="/clinics/:id" element={<ClinicProfile />} />
       </Routes>
     </Router>
   );

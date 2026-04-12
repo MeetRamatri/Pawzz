@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import { Search, MapPin, Star, ArrowRight } from 'lucide-react';
@@ -87,7 +88,7 @@ export default function FindVets() {
                 <div key={clinic._id} className="organic-card overflow-hidden group hover:-translate-y-2">
                   <div className="h-56 overflow-hidden rounded-t-[1.5rem] bg-surface-container relative">
                     <img 
-                      src={clinic.image || "https://images.unsplash.com/photo-1599443015574-be5fe8c0bf04?auto=format&fit=crop&q=80&w=800"} 
+                      src={clinic.image || "https://images.unsplash.com/photo-1596272875729-ed2ff7d6d9c5?auto=format&fit=crop&q=80&w=800"} 
                       alt={clinic.name} 
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
                     />
@@ -111,9 +112,9 @@ export default function FindVets() {
                         <span className="text-xs text-on-surface/50 self-center">+{clinic.services.length - 3} more</span>
                       )}
                     </div>
-                    <button className="w-full py-3 bg-primary/10 hover:bg-primary text-primary hover:text-white transition-colors rounded-xl font-semibold flex justify-center items-center gap-2">
-                      Book Appointment <ArrowRight className="w-4 h-4" />
-                    </button>
+                  <Link to={`/clinics/${clinic._id}`} className="block text-center w-full py-3 bg-surface-container-low hover:bg-primary border-none hover:text-white transition-colors rounded-xl font-semibold text-on-surface">
+                    View Details
+                  </Link>
                   </div>
                 </div>
               ))
