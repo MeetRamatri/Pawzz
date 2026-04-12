@@ -1,12 +1,106 @@
 @import "tailwindcss";
 
 @theme {
-  --color-accent: #aa3bff;
+  --color-primary: #496251;
+  --color-primary-container: #617a69;
+  --color-primary-fixed-dim: #9ab4a3;
+  --color-secondary: #ab573c;
+  --color-secondary-container: #ffd9cd;
+  --color-tertiary: #427282;
+
+  --color-surface: #f9faf5;
+  --color-surface-bright: #ffffff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f4f5f0;
+  --color-surface-container: #eeeeea;
+  --color-surface-container-highest: #e2e3df;
+  --color-surface-variant: #e1e3de;
+
+  --color-on-surface: #1a1c1a;
+  
   --font-sans: 'Inter', system-ui, sans-serif;
-  --font-heading: 'Outfit', system-ui, sans-serif;
+  --font-heading: 'Plus Jakarta Sans', system-ui, sans-serif;
+
+  --shadow-ambient: 0 12px 40px rgba(26, 28, 26, 0.06);
 }
 
 body {
-  background-color: #0d0b14;
-  color: #f3f4f6;
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+  font-family: var(--font-sans);
+  margin: 0;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  letter-spacing: -0.02em;
+}
+
+/* Glassmorphism */
+.glass-surface {
+  background-color: color-mix(in srgb, var(--color-surface) 80%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Custom Gradient Typography */
+.text-gradient {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-container));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Reusing Tailwind v4's input resets to map to our organic buttons/inputs */
+.btn-primary {
+  background-color: var(--color-primary);
+  color: white;
+  border-radius: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: all 0.2s ease-in-out;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-container);
+  box-shadow: var(--shadow-ambient);
+}
+
+.btn-secondary {
+  background-color: var(--color-secondary);
+  color: white;
+  border-radius: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: all 0.2s ease-in-out;
+  border: none;
+}
+
+.btn-secondary:hover {
+  filter: brightness(1.1);
+  box-shadow: var(--shadow-ambient);
+}
+
+.organic-card {
+  background-color: var(--color-surface-container-low);
+  border-radius: 1.5rem;
+  transition: all 0.3s ease;
+  border: none; /* No 1px borders */
+}
+
+/* Input states according to spec */
+.organic-input {
+  background-color: var(--color-surface-variant);
+  border-radius: 1rem;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.organic-input:focus {
+  background-color: var(--color-surface-container-lowest);
+  box-shadow: 0 0 0 1px var(--color-primary);
 }
