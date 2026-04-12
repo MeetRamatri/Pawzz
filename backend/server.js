@@ -13,8 +13,9 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-
+// Routes
 app.use('/api/auth', require('./src/routes/authRoutes'));
+app.use('/api/clinics', require('./src/routes/clinicRoutes'));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Pawzz API is running perfectly!', timestamp: new Date() });
