@@ -16,6 +16,7 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', require('./src/routes/authRoutes'));
 app.use('/api/clinics', require('./src/routes/clinicRoutes'));
+app.use('/api/rescuers', require('./src/routes/rescuerRoutes'));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Pawzz API is running perfectly!', timestamp: new Date() });
