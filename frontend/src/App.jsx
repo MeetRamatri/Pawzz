@@ -1,10 +1,23 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
-import { Search, AlertCircle, ArrowRight, UserCircle, BriefcaseMedical, ShieldCheck } from 'lucide-react';
+import FindVets from './pages/FindVets';
+import { Search, AlertCircle, ArrowRight, UserCircle, BriefcaseMedical, ShieldCheck, MapPin, Star } from 'lucide-react';
 
 function Home() {
+  const [featuredClinics, setFeaturedClinics] = useState([]);
+
+  useEffect(() => {
+    // Fetch only a few clinics for the homepage
+    fetch('http://localhost:5000/api/clinics')
+      .then(res => res.json())
+      .then(data => {
+        setFeaturedClinics(data.slice(0, 3)); // Only feature 3 on the homepage
+      })
+      .catch(err => console.error("Failed to fetch featured clinics:", err));
+  }, []);
+
   return (
     <div className="min-h-screen bg-surface selection:bg-primary-container selection:text-white">
       <Navbar />
@@ -42,9 +55,9 @@ function Home() {
                   className="w-full py-4 px-3 bg-transparent border-none outline-none font-sans text-on-surface placeholder:text-on-surface/40"
                 />
               </div>
-              <button className="btn-primary ml-2 shrink-0">
+              <Link to="/clinics" className="btn-primary ml-2 shrink-0 flex items-center">
                 Find Care
-              </button>
+              </Link>
             </div>
           </div>
           
@@ -63,7 +76,6 @@ function Home() {
 
       {/* 
         URGENCY BANNER 
-        Sits on surface-container-low, uses Terracotta for action 
       */}
       <section className="max-w-6xl mx-auto px-6 mb-32 -mt-10 relative z-20">
         <div className="bg-surface-container-lowest rounded-3xl p-8 md:p-12 shadow-ambient flex flex-col md:flex-row items-center justify-between gap-8 border-none ring-1 ring-surface-container-highest/15">
@@ -84,9 +96,8 @@ function Home() {
 
       {/* 
         ELITE VETERINARY CARE 
-        Cards with no dividers, on surface-container-low
       */}
-      <section className="bg-surface-container py-32">
+      <section className="bg-surface-container py-32 border-none">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
             <div className="max-w-2xl">
@@ -99,69 +110,53 @@ function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Organic Card 1 */}
-            <div className="organic-card overflow-hidden group hover:-translate-y-2">
-              <div className="h-64 overflow-hidden rounded-t-[1.5rem]">
-                <img src="https://images.unsplash.com/photo-1629851606558-89c0eaeb85ea?auto=format&fit=crop&q=80&w=800" alt="Vet exam" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-              </div>
-              <div className="p-8">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-2xl font-bold text-on-surface">Paws & Whiskers Clinic</h3>
-                  <div className="bg-surface-container px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1">
-                    ★ 4.9
+            {featuredClinics.map((clinic, index) => (
+              <div key={clinic._id || index} className="organic-card overflow-hidden group hover:-translate-y-2 border-none">
+                <div className="h-64 overflow-hidden rounded-t-[1.5rem] bg-surface-container-highest relative">
+                  <img 
+                    src={clinic.image || "https://images.unsplash.com/photo-1629851606558-89c0eaeb85ea?auto=format&fit=crop&q=80&w=800"} 
+                    alt={clinic.name} 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                  />
+                  <div className="absolute top-4 right-4 bg-surface-container-low px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1 shadow-ambient">
+                    <Star className="w-4 h-4 text-secondary fill-secondary" /> {clinic.rating || 'New'}
                   </div>
                 </div>
-                <p className="text-on-surface/60 text-sm mb-6">Specializing in: Feline Medicine, Orthopedics</p>
-                <button className="w-full py-3 bg-surface-container hover:bg-primary hover:text-white transition-colors rounded-xl font-semibold text-on-surface">
-                  Book Appointment
-                </button>
-              </div>
-            </div>
-
-            {/* Organic Card 2 */}
-            <div className="organic-card overflow-hidden group hover:-translate-y-2">
-              <div className="h-64 overflow-hidden rounded-t-[1.5rem]">
-                <img src="https://images.unsplash.com/photo-1599443015574-be5fe8c0bf04?auto=format&fit=crop&q=80&w=800" alt="Vet surgery" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-              </div>
-              <div className="p-8">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-2xl font-bold text-on-surface">Sanctuary Health Center</h3>
-                  <div className="bg-surface-container px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1">
-                    ★ 4.8
+                <div className="p-8">
+                  <h3 className="text-2xl font-bold text-on-surface mb-2">{clinic.name}</h3>
+                  <p className="text-on-surface/60 text-sm mb-4 flex items-start gap-1">
+                      <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
+                      {clinic.address}
+                  </p>
+                  <div className="flex flex-wrap gap-2 mb-8">
+                    {clinic.services?.slice(0, 2).map((service, idx) => (
+                      <span key={idx} className="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-semibold text-on-surface/80">
+                        {service}
+                      </span>
+                    ))}
+                    {clinic.services?.length > 2 && (
+                      <span className="text-xs text-on-surface/50 self-center">+{clinic.services.length - 2} more</span>
+                    )}
                   </div>
+                  <Link to="/clinics" className="block text-center w-full py-3 bg-surface-container-low hover:bg-primary border-none hover:text-white transition-colors rounded-xl font-semibold text-on-surface">
+                    View Details
+                  </Link>
                 </div>
-                <p className="text-on-surface/60 text-sm mb-6">Specializing in: Holistic Care, Surgery</p>
-                <button className="w-full py-3 bg-surface-container hover:bg-primary hover:text-white transition-colors rounded-xl font-semibold text-on-surface">
-                  Book Appointment
-                </button>
               </div>
-            </div>
-
-            {/* Organic Card 3 */}
-            <div className="organic-card overflow-hidden group hover:-translate-y-2">
-              <div className="h-64 overflow-hidden rounded-t-[1.5rem]">
-                <img src="https://images.unsplash.com/photo-1576201836106-db1758fd1c97?auto=format&fit=crop&q=80&w=800" alt="Vet tech" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-              </div>
-              <div className="p-8">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-2xl font-bold text-on-surface">City Pet Hospital</h3>
-                  <div className="bg-surface-container px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1">
-                    ★ 4.7
-                  </div>
-                </div>
-                <p className="text-on-surface/60 text-sm mb-6">Specializing in: Emergency, Dental Care</p>
-                <button className="w-full py-3 bg-surface-container hover:bg-primary hover:text-white transition-colors rounded-xl font-semibold text-on-surface">
-                  Book Appointment
-                </button>
-              </div>
-            </div>
+            ))}
+            
+            {/* Fallback layout incase DB is completely empty */}
+            {featuredClinics.length === 0 && (
+               <div className="col-span-3 text-center py-10 text-on-surface/50">
+                  <p>No clinics available at the moment. Run the seeder script!</p>
+               </div>
+            )}
           </div>
         </div>
       </section>
 
       {/* 
         ACTIVE VOLUNTEER NETWORKS 
-        Editorial scrapbook style image arrangement 
       */}
       <section className="py-32 px-6 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
@@ -253,6 +248,7 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/clinics" element={<FindVets />} />
       </Routes>
     </Router>
   );
