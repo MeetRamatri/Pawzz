@@ -5,6 +5,7 @@ import Footer from './components/layout/Footer';
 import FindVets from './pages/FindVets';
 import ClinicProfile from './pages/ClinicProfile';
 import RescueCenter from './pages/RescueCenter';
+import UserDashboard from './pages/UserDashboard';
 import { Search, AlertCircle, ArrowRight, UserCircle, BriefcaseMedical, ShieldCheck, MapPin, Star } from 'lucide-react';
 
 function Home() {
@@ -253,6 +254,7 @@ export default function App() {
         <Route path="/clinics" element={<FindVets />} />
         <Route path="/clinics/:id" element={<ClinicProfile />} />
         <Route path="/rescue" element={<RescueCenter />} />
+        <Route path="/dashboard" element={<UserDashboard />} />
       </Routes>
     </Router>
   );
