@@ -4,6 +4,7 @@ import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import FindVets from './pages/FindVets';
 import ClinicProfile from './pages/ClinicProfile';
+import RescueCenter from './pages/RescueCenter';
 import { Search, AlertCircle, ArrowRight, UserCircle, BriefcaseMedical, ShieldCheck, MapPin, Star } from 'lucide-react';
 
 function Home() {
@@ -251,6 +252,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/clinics" element={<FindVets />} />
         <Route path="/clinics/:id" element={<ClinicProfile />} />
+        <Route path="/rescue" element={<RescueCenter />} />
       </Routes>
     </Router>
   );
