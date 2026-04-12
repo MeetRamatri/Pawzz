@@ -21,7 +21,22 @@ const createClinic = async (req, res) => {
 
 const getClinics = async (req, res) => {
   try {
-    const clinics = await Clinic.find().populate('owner', 'name email');
+    const { lat, lng, radius } = req.query;
+    let query = {};
+
+    if (lat && lng) {
+      query.location = {
+        $near: {
+          $geometry: {
+            type: 'Point',
+            coordinates: [parseFloat(lng), parseFloat(lat)],
+          },
+          ...(radius && { $maxDistance: parseFloat(radius) * 1000 }), // default radius in km
+        },
+      };
+    }
+
+    const clinics = await Clinic.find(query).populate('owner', 'name email');
     res.json(clinics);
   } catch (error) {
     res.status(500).json({ message: error.message });
