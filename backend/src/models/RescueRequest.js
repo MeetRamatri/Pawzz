@@ -23,6 +23,20 @@ const rescueRequestSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Please provide a description of the animal emergency'],
     },
+    title: {
+      type: String,
+    },
+    animalType: {
+      type: String, // e.g., 'Dog', 'Cat', 'Bird / Wildlife'
+    },
+    priority: {
+      type: String,
+      enum: ['urgent', 'stray_alert', 'routine'],
+      default: 'routine',
+    },
+    photo: {
+      type: String, // URL
+    },
     status: {
       type: String,
       enum: ['pending', 'accepted', 'completed'],

@@ -27,9 +27,16 @@ const clinicSchema = new mongoose.Schema(
         required: true, // [longitude, latitude]
       },
     },
-    services: {
-      type: [String],
-      required: [true, 'Please add at least one service (e.g., Vaccination, Surgery)'],
+    services: [{
+      name: { type: String, required: true },
+      price: { type: Number, required: true },
+      description: { type: String }
+    }],
+    image: {
+      type: String,
+    },
+    gallery: {
+      type: [String], // Array of URLs for collage
     },
     rating: {
       type: Number,
