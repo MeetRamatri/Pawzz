@@ -23,10 +23,14 @@ export default function FindVets() {
       });
   }, []);
 
-  const filteredClinics = clinics.filter(clinic => 
-    clinic.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    clinic.services.some(s => s.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filteredClinics = clinics.filter(clinic => {
+    const clinicNameMatch = clinic.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const serviceMatch = clinic.services.some(s => {
+      const serviceStr = typeof s === 'string' ? s : s.name;
+      return serviceStr?.toLowerCase().includes(searchQuery.toLowerCase());
+    });
+    return clinicNameMatch || serviceMatch;
+  });
 
   return (
     <div className="min-h-screen bg-surface selection:bg-primary-container selection:text-white flex flex-col">
@@ -105,7 +109,7 @@ export default function FindVets() {
                     <div className="flex flex-wrap gap-2 mb-8">
                       {clinic.services?.slice(0, 3).map((service, idx) => (
                         <span key={idx} className="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-semibold text-on-surface/80">
-                          {service}
+                          {typeof service === 'string' ? service : service.name}
                         </span>
                       ))}
                       {clinic.services?.length > 3 && (

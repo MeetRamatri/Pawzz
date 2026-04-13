@@ -12,8 +12,20 @@ export default function UserDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetching the dynamic aggregations for prototyped user 'Sarah'
-    fetch('http://localhost:5000/api/dashboard/sarah@example.com')
+    // Resolve dynamic user from auth context, fallback to prototype user if not logged in
+    const authData = localStorage.getItem('pawzz_user');
+    let targetEmail = 'sarah@example.com';
+    
+    if (authData) {
+      try {
+        const parsed = JSON.parse(authData);
+        if (parsed.email) targetEmail = parsed.email;
+      } catch (e) {
+        console.error("Auth parsing error", e);
+      }
+    }
+
+    fetch(`http://localhost:5000/api/dashboard/${targetEmail}`)
       .then(res => res.json())
       .then(json => {
         setData(json);

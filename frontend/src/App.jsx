@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import FindVets from './pages/FindVets';
@@ -135,7 +135,7 @@ function Home() {
                   <div className="flex flex-wrap gap-2 mb-8">
                     {clinic.services?.slice(0, 2).map((service, idx) => (
                       <span key={idx} className="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-semibold text-on-surface/80">
-                        {service}
+                        {typeof service === 'string' ? service : service.name}
                       </span>
                     ))}
                     {clinic.services?.length > 2 && (
@@ -247,16 +247,26 @@ const HeartIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
 )
 
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem('pawzz_token');
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+};
+
 export default function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/clinics" element={<FindVets />} />
-        <Route path="/clinics/:id" element={<ClinicProfile />} />
-        <Route path="/rescue" element={<RescueCenter />} />
-        <Route path="/dashboard" element={<UserDashboard />} />
         <Route path="/login" element={<Auth />} />
+        
+        {/* Protected Routes */}
+        <Route path="/clinics" element={<ProtectedRoute><FindVets /></ProtectedRoute>} />
+        <Route path="/clinics/:id" element={<ProtectedRoute><ClinicProfile /></ProtectedRoute>} />
+        <Route path="/rescue" element={<ProtectedRoute><RescueCenter /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
       </Routes>
     </Router>
   );
