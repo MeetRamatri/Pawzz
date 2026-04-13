@@ -4,6 +4,8 @@ const {
   createClinic,
   getClinics,
   getClinicById,
+  updateClinic,
+  getMyClinics,
 } = require('../controllers/clinicController');
 const { protect, authorizeRoles } = require('../middleware/authMiddleware');
 
@@ -14,6 +16,11 @@ router
 
 router
   .route('/:id')
-  .get(getClinicById);
+  .get(getClinicById)
+  .put(protect, authorizeRoles('vet'), updateClinic);
+
+router
+  .route('/my-clinics')
+  .get(protect, authorizeRoles('vet'), getMyClinics);
 
 module.exports = router;

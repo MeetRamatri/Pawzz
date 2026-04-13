@@ -57,8 +57,44 @@ const getClinicById = async (req, res) => {
   }
 };
 
+const updateClinic = async (req, res) => {
+  try {
+    const clinic = await Clinic.findById(req.params.id);
+
+    if (!clinic) {
+      return res.status(404).json({ message: 'Clinic not found' });
+    }
+
+    // Check if the user owns this clinic
+    if (clinic.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized to update this clinic' });
+    }
+
+    const updatedClinic = await Clinic.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+
+    res.json(updatedClinic);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getMyClinics = async (req, res) => {
+  try {
+    const clinics = await Clinic.find({ owner: req.user._id });
+    res.json(clinics);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createClinic,
   getClinics,
   getClinicById,
+  updateClinic,
+  getMyClinics,
 };

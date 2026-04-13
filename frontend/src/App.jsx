@@ -6,6 +6,8 @@ import FindVets from './pages/FindVets';
 import ClinicProfile from './pages/ClinicProfile';
 import RescueCenter from './pages/RescueCenter';
 import UserDashboard from './pages/UserDashboard';
+import VetDashboard from './pages/VetDashboard';
+import RescuerDashboard from './pages/RescuerDashboard';
 import Auth from './pages/Auth';
 import { Search, AlertCircle, ArrowRight, UserCircle, BriefcaseMedical, ShieldCheck, MapPin, Star } from 'lucide-react';
 
@@ -252,6 +254,24 @@ const ProtectedRoute = ({ children }) => {
   if (!token) {
     return <Navigate to="/login" replace />;
   }
+
+  // Check user role and redirect to appropriate dashboard
+  const userData = localStorage.getItem('pawzz_user');
+  if (userData) {
+    try {
+      const user = JSON.parse(userData);
+      if (user.role === 'vet') {
+        return <Navigate to="/dashboard/vet" replace />;
+      } else if (user.role === 'rescuer') {
+        return <Navigate to="/dashboard/rescuer" replace />;
+      } else if (user.role === 'user') {
+        return <Navigate to="/dashboard/user" replace />;
+      }
+    } catch (e) {
+      console.error("User data parsing error", e);
+    }
+  }
+
   return children;
 };
 
@@ -267,6 +287,9 @@ export default function App() {
         <Route path="/clinics/:id" element={<ProtectedRoute><ClinicProfile /></ProtectedRoute>} />
         <Route path="/rescue" element={<ProtectedRoute><RescueCenter /></ProtectedRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
+        <Route path="/dashboard/user" element={<UserDashboard />} />
+        <Route path="/dashboard/vet" element={<VetDashboard />} />
+        <Route path="/dashboard/rescuer" element={<RescuerDashboard />} />
       </Routes>
     </Router>
   );

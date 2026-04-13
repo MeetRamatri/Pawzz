@@ -105,10 +105,37 @@ const acceptRescueRequest = async (req, res) => {
   }
 };
 
+// @desc    Decline a rescue request
+// @route   PUT /api/rescue-requests/:id/decline
+// @access  Private (rescuer only)
+const declineRescueRequest = async (req, res) => {
+  try {
+    const request = await RescueRequest.findById(req.params.id);
+
+    if (!request) {
+      return res.status(404).json({ message: 'Rescue request not found' });
+    }
+
+    // Only allow declining if it's currently pending
+    if (request.status !== 'pending') {
+      return res.status(400).json({ message: 'Request is already accepted or completed' });
+    }
+
+    request.status = 'completed'; // Mark as completed (declined)
+    // Don't assign rescuer for declined requests
+
+    const updatedRequest = await request.save();
+    res.json(updatedRequest);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createRescueRequest,
   getMyRescueRequests,
   getNearbyPendingRequests,
   acceptRescueRequest,
+  declineRescueRequest,
   getPublicRescueRequests,
 };

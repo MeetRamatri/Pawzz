@@ -14,7 +14,9 @@ export default function FindVets() {
     fetch('http://localhost:5000/api/clinics')
       .then((res) => res.json())
       .then((data) => {
-        setClinics(data);
+        // Ensure data is an array
+        const clinicsArray = Array.isArray(data) ? data : [];
+        setClinics(clinicsArray);
         setLoading(false);
       })
       .catch((err) => {
@@ -23,14 +25,14 @@ export default function FindVets() {
       });
   }, []);
 
-  const filteredClinics = clinics.filter(clinic => {
+  const filteredClinics = Array.isArray(clinics) ? clinics.filter(clinic => {
     const clinicNameMatch = clinic.name.toLowerCase().includes(searchQuery.toLowerCase());
     const serviceMatch = clinic.services.some(s => {
       const serviceStr = typeof s === 'string' ? s : s.name;
       return serviceStr?.toLowerCase().includes(searchQuery.toLowerCase());
     });
     return clinicNameMatch || serviceMatch;
-  });
+  }) : [];
 
   return (
     <div className="min-h-screen bg-surface selection:bg-primary-container selection:text-white flex flex-col">
@@ -107,12 +109,12 @@ export default function FindVets() {
                       {clinic.address}
                     </p>
                     <div className="flex flex-wrap gap-2 mb-8">
-                      {clinic.services?.slice(0, 3).map((service, idx) => (
+                      {Array.isArray(clinic.services) && clinic.services.slice(0, 3).map((service, idx) => (
                         <span key={idx} className="bg-surface-container-highest px-3 py-1 rounded-full text-xs font-semibold text-on-surface/80">
                           {typeof service === 'string' ? service : service.name}
                         </span>
                       ))}
-                      {clinic.services?.length > 3 && (
+                      {Array.isArray(clinic.services) && clinic.services.length > 3 && (
                         <span className="text-xs text-on-surface/50 self-center">+{clinic.services.length - 3} more</span>
                       )}
                     </div>

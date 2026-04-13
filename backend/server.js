@@ -22,6 +22,8 @@ app.use('/api/rescuers', require('./src/routes/rescuerRoutes'));
 app.use('/api/rescue-requests', require('./src/routes/rescueRequestRoutes'));
 app.use('/api/dashboard', require('./src/routes/dashboardRoutes'));
 app.use('/api/upload', require('./src/routes/uploadRoutes'));
+app.use('/api/pets', require('./src/routes/petRoutes'));
+app.use('/api/appointments', require('./src/routes/appointmentRoutes'));
 
 // Serve 'uploads' directory statically
 app.use('/uploads', express.static(require('path').join(__dirname, 'uploads')));

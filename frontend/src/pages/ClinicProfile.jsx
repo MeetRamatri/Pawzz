@@ -8,6 +8,11 @@ export default function ClinicProfile() {
   const { id } = useParams();
   const [clinic, setClinic] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedTime, setSelectedTime] = useState('');
+  const [selectedService, setSelectedService] = useState('');
+  const [pets, setPets] = useState([]);
+  const [selectedPet, setSelectedPet] = useState('');
 
   // Fetch the specific clinic data dynamically based on the URL ID parameter
   useEffect(() => {
@@ -22,6 +27,66 @@ export default function ClinicProfile() {
         setLoading(false);
       });
   }, [id]);
+
+  // Fetch user's pets for booking
+  useEffect(() => {
+    const token = localStorage.getItem('pawzz_token');
+    if (token) {
+      fetch('http://localhost:5000/api/pets', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+        .then(res => res.json())
+        .then(data => {
+          setPets(data);
+        })
+        .catch(err => {
+          console.error("Failed to fetch pets:", err);
+        });
+    }
+  }, []);
+
+  const handleBookAppointment = async () => {
+    if (!selectedPet || !selectedService || !selectedDate || !selectedTime) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    const appointmentData = {
+      clinic: id,
+      pet: selectedPet,
+      serviceName: selectedService,
+      date: selectedDate,
+      timeSlot: selectedTime
+    };
+
+    try {
+      const res = await fetch('http://localhost:5000/api/appointments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('pawzz_token')}`
+        },
+        body: JSON.stringify(appointmentData)
+      });
+
+      if (res.ok) {
+        alert('Appointment booked successfully!');
+        // Reset form
+        setSelectedPet('');
+        setSelectedService('');
+        setSelectedDate('');
+        setSelectedTime('');
+      } else {
+        const error = await res.json();
+        alert(`Booking failed: ${error.message}`);
+      }
+    } catch (err) {
+      console.error("Booking error:", err);
+      alert('Booking failed. Please try again.');
+    }
+  };
 
   if (loading) {
     return (
@@ -209,36 +274,68 @@ export default function ClinicProfile() {
             <div className="p-8">
               <h3 className="text-2xl font-bold text-on-surface mb-8">Schedule Visit</h3>
               
-              {/* Date Selection */}
-              <div className="mb-8">
-                <label className="text-xs font-bold text-on-surface/60 uppercase tracking-widest mb-4 block">Select Date</label>
-                <div className="flex justify-between gap-3">
-                  <div className="bg-surface-container py-3 px-2 rounded-2xl flex-1 text-center font-bold cursor-pointer text-on-surface/50 hover:bg-surface-container-highest transition-colors">MON<br/>14</div>
-                  <div className="bg-primary text-white py-3 px-2 rounded-2xl flex-1 text-center font-bold cursor-pointer shadow-ambient transition-all transform hover:-translate-y-1">TUE<br/>15</div>
-                  <div className="bg-surface-container py-3 px-2 rounded-2xl flex-1 text-center font-bold cursor-pointer text-on-surface/50 hover:bg-surface-container-highest transition-colors">WED<br/>16</div>
-                  <div className="bg-surface-container py-3 px-2 rounded-2xl flex-1 text-center font-bold cursor-pointer text-on-surface/50 hover:bg-surface-container-highest transition-colors">THU<br/>17</div>
+              {/* Pet Selection */}
+              <div className="mb-6">
+                <label className="text-xs font-bold text-on-surface/60 uppercase tracking-widest mb-4 block">Select Pet</label>
+                <div className="relative">
+                  <select 
+                    value={selectedPet}
+                    onChange={(e) => setSelectedPet(e.target.value)}
+                    className="w-full organic-input font-semibold text-on-surface bg-surface-container-highest appearance-none cursor-pointer"
+                  >
+                    <option value="">Choose your pet</option>
+                    {pets.map((pet) => (
+                      <option key={pet._id} value={pet._id}>{pet.name} ({pet.species})</option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+                    <svg className="w-4 h-4 text-on-surface/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                  </div>
                 </div>
               </div>
 
+              {/* Date Selection */}
+              <div className="mb-6">
+                <label className="text-xs font-bold text-on-surface/60 uppercase tracking-widest mb-4 block">Select Date</label>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="w-full organic-input font-semibold text-on-surface bg-surface-container-highest"
+                  min={new Date().toISOString().split('T')[0]}
+                />
+              </div>
+
               {/* Time Slots */}
-              <div className="mb-8">
+              <div className="mb-6">
                  <label className="text-xs font-bold text-on-surface/60 uppercase tracking-widest mb-4 block">Available Slots</label>
                  <div className="grid grid-cols-2 gap-3">
-                   <div className="outline outline-2 outline-surface-container-highest rounded-full py-3 text-center text-sm font-semibold cursor-pointer text-on-surface/60 hover:bg-surface-variant transition-colors">09:00 AM</div>
-                   <div className="outline outline-2 outline-surface-container-highest rounded-full py-3 text-center text-sm font-semibold cursor-pointer text-on-surface/60 hover:bg-surface-variant transition-colors">10:30 AM</div>
-                   <div className="bg-primary/10 rounded-full py-3 text-center text-sm font-bold cursor-pointer text-primary transition-all">12:00 PM</div>
-                   <div className="outline outline-2 outline-surface-container-highest rounded-full py-3 text-center text-sm font-semibold cursor-pointer text-on-surface/60 hover:bg-surface-variant transition-colors">02:15 PM</div>
-                   <div className="outline outline-2 outline-surface-container-highest rounded-full py-3 text-center text-sm font-semibold cursor-pointer text-on-surface/60 hover:bg-surface-variant transition-colors">03:45 PM</div>
-                   <div className="outline outline-2 outline-surface-container-highest rounded-full py-3 text-center text-sm font-semibold cursor-pointer text-on-surface/30 opacity-50">05:00 PM</div>
+                   {['09:00', '10:30', '12:00', '14:15', '15:45', '17:00'].map((time) => (
+                     <div 
+                       key={time}
+                       onClick={() => setSelectedTime(time)}
+                       className={`rounded-full py-3 text-center text-sm font-semibold cursor-pointer transition-colors ${
+                         selectedTime === time 
+                           ? 'bg-primary text-white' 
+                           : 'outline outline-2 outline-surface-container-highest text-on-surface/60 hover:bg-surface-variant'
+                       }`}
+                     >
+                       {time}
+                     </div>
+                   ))}
                  </div>
               </div>
 
               {/* Service Dropdown */}
-              <div className="mb-10">
+              <div className="mb-8">
                  <label className="text-xs font-bold text-on-surface/60 uppercase tracking-widest mb-4 block">Service Type</label>
                  <div className="relative">
-                   <select className="w-full organic-input font-semibold text-on-surface bg-surface-container-highest appearance-none cursor-pointer">
-                     <option>Initial Consultation</option>
+                   <select 
+                     value={selectedService}
+                     onChange={(e) => setSelectedService(e.target.value)}
+                     className="w-full organic-input font-semibold text-on-surface bg-surface-container-highest appearance-none cursor-pointer"
+                   >
+                     <option value="">Choose service</option>
                      {servicesList.map((service, idx) => (
                         <option key={idx} value={service.title}>{service.title}</option>
                      ))}
@@ -250,7 +347,10 @@ export default function ClinicProfile() {
               </div>
 
               {/* Action */}
-              <button className="btn-primary w-full py-4 text-lg shadow-ambient mb-4 hover:-translate-y-1 transition-all">
+              <button 
+                onClick={handleBookAppointment}
+                className="btn-primary w-full py-4 text-lg shadow-ambient mb-4 hover:-translate-y-1 transition-all"
+              >
                 Confirm Appointment
               </button>
               <p className="text-center text-xs font-medium text-on-surface/50 mb-4">No payment required until the time of visit.</p>

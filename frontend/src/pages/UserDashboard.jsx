@@ -4,12 +4,16 @@ import Footer from '../components/layout/Footer';
 import { 
   LayoutGrid, PawPrint, Calendar as CalendarIcon, Bookmark, Settings, 
   MapPin, Clock, AlertTriangle, Syringe, Heart, FileText, 
-  AlertCircle, Info, Bell 
+  AlertCircle, Info, Bell, Plus, Edit, Star, AlertOctagon
 } from 'lucide-react';
 
 export default function UserDashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showAddPet, setShowAddPet] = useState(false);
+  const [showRescueRequest, setShowRescueRequest] = useState(false);
+  const [clinics, setClinics] = useState([]);
+  const [showBookAppointment, setShowBookAppointment] = useState(false);
 
   useEffect(() => {
     // Resolve dynamic user from auth context, fallback to prototype user if not logged in
@@ -35,7 +39,111 @@ export default function UserDashboard() {
         console.error("Dashboard fetch error:", err);
         setLoading(false);
       });
+
+    // Fetch clinics for booking appointments
+    fetch('http://localhost:5000/api/clinics')
+      .then(res => res.json())
+      .then(data => {
+        // Ensure data is an array
+        const clinicsArray = Array.isArray(data) ? data : [];
+        setClinics(clinicsArray);
+      })
+      .catch(err => console.error("Clinics fetch error:", err));
   }, []);
+
+  const handleAddPet = async (petData) => {
+    const authData = localStorage.getItem('pawzz_user');
+    let user = null;
+
+    if (authData) {
+      try {
+        user = JSON.parse(authData);
+      } catch (e) {
+        console.error("Auth parsing error", e);
+      }
+    }
+
+    if (!user) return;
+
+    try {
+      const res = await fetch('http://localhost:5000/api/pets', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('pawzz_token')}`
+        },
+        body: JSON.stringify({
+          ...petData,
+          owner: user._id
+        })
+      });
+
+      if (res.ok) {
+        // Refresh dashboard data
+        window.location.reload();
+        setShowAddPet(false);
+      }
+    } catch (err) {
+      console.error("Add pet error:", err);
+    }
+  };
+
+  const handleBookAppointment = async (appointmentData) => {
+    try {
+      const res = await fetch('http://localhost:5000/api/appointments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('pawzz_token')}`
+        },
+        body: JSON.stringify(appointmentData)
+      });
+
+      if (res.ok) {
+        // Refresh dashboard data
+        window.location.reload();
+        setShowBookAppointment(false);
+      }
+    } catch (err) {
+      console.error("Book appointment error:", err);
+    }
+  };
+
+  const handleRescueRequest = async (requestData) => {
+    const authData = localStorage.getItem('pawzz_user');
+    let user = null;
+
+    if (authData) {
+      try {
+        user = JSON.parse(authData);
+      } catch (e) {
+        console.error("Auth parsing error", e);
+      }
+    }
+
+    if (!user) return;
+
+    try {
+      const res = await fetch('http://localhost:5000/api/rescue-requests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('pawzz_token')}`
+        },
+        body: JSON.stringify({
+          ...requestData,
+          user: user._id
+        })
+      });
+
+      if (res.ok) {
+        alert('Rescue request submitted successfully!');
+        setShowRescueRequest(false);
+      }
+    } catch (err) {
+      console.error("Rescue request error:", err);
+    }
+  };
 
   if (loading || !data) {
     return (
@@ -46,7 +154,7 @@ export default function UserDashboard() {
   }
 
   const { user, pets, appointments, careTimeline } = data;
-  const nextAppt = appointments && appointments.length > 0 ? appointments[0] : null;
+  const nextAppt = Array.isArray(appointments) && appointments.length > 0 ? appointments[0] : null;
 
   return (
     <div className="min-h-screen bg-surface selection:bg-primary-container selection:text-white flex flex-col pt-32">
@@ -83,9 +191,31 @@ export default function UserDashboard() {
           <div className="lg:col-span-10 w-full space-y-10">
             
             {/* Header */}
-            <div>
-              <h1 className="text-4xl font-extrabold text-on-surface mb-2 tracking-tight">Welcome back, {user.name.split(' ')[0]}</h1>
-              <p className="text-on-surface/60 font-medium text-lg">Your companions are in good hands today. Here's what's happening.</p>
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-4xl font-extrabold text-on-surface mb-2 tracking-tight">Welcome back, {user.name.split(' ')[0]}</h1>
+                <p className="text-on-surface/60 font-medium text-lg">Your companions are in good hands today. Here's what's happening.</p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowAddPet(true)}
+                  className="bg-primary text-white px-4 py-2 rounded-full font-bold hover:bg-primary/90 transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" /> Add Pet
+                </button>
+                <button
+                  onClick={() => setShowBookAppointment(true)}
+                  className="bg-secondary text-white px-4 py-2 rounded-full font-bold hover:bg-secondary/90 transition-colors flex items-center gap-2"
+                >
+                  <CalendarIcon className="w-4 h-4" /> Book Appointment
+                </button>
+                <button
+                  onClick={() => setShowRescueRequest(true)}
+                  className="bg-red-500 text-white px-4 py-2 rounded-full font-bold hover:bg-red-600 transition-colors flex items-center gap-2"
+                >
+                  <AlertOctagon className="w-4 h-4" /> Rescue Request
+                </button>
+              </div>
             </div>
 
             {/* Top Cards Grid */}
@@ -148,9 +278,9 @@ export default function UserDashboard() {
                 
                 <div className="relative pl-6 border-l-2 border-surface-container-highest space-y-10">
                   
-                  {careTimeline.length === 0 && <p className="text-sm text-on-surface/60 italic">No care records logged yet.</p>}
+                  {(!Array.isArray(careTimeline) || careTimeline.length === 0) && <p className="text-sm text-on-surface/60 italic">No care records logged yet.</p>}
 
-                  {careTimeline.map((record, idx) => {
+                  {Array.isArray(careTimeline) && careTimeline.map((record, idx) => {
                     let Icon = FileText;
                     let bgCol = "bg-surface-container-highest";
                     let iconCol = "text-on-surface/70";
@@ -223,9 +353,9 @@ export default function UserDashboard() {
                 <div>
                   <h3 className="text-xl font-bold text-on-surface mb-6">My Companions</h3>
                   <div className="grid grid-cols-2 gap-4">
-                    {pets.length === 0 && <p className="text-sm col-span-2 text-on-surface/60 italic">No companions registered.</p>}
+                    {(!Array.isArray(pets) || pets.length === 0) && <p className="text-sm col-span-2 text-on-surface/60 italic">No companions registered.</p>}
                     
-                    {pets.map((pet, idx) => (
+                    {Array.isArray(pets) && pets.map((pet, idx) => (
                       <div key={pet._id || idx} className="bg-surface-container-lowest p-3 rounded-[2rem] shadow-sm hover:shadow-ambient transition-shadow text-center">
                         <div className="aspect-square w-full rounded-2xl overflow-hidden mb-3 bg-surface-container">
                           <img src={pet.image} alt={pet.name} className="w-full h-full object-cover" />
@@ -246,6 +376,340 @@ export default function UserDashboard() {
       </main>
 
       <Footer />
+
+      {/* Modals */}
+      {showAddPet && (
+        <AddPetModal
+          onClose={() => setShowAddPet(false)}
+          onSubmit={handleAddPet}
+        />
+      )}
+
+      {showBookAppointment && (
+        <BookAppointmentModal
+          onClose={() => setShowBookAppointment(false)}
+          onSubmit={handleBookAppointment}
+          clinics={clinics}
+          pets={pets}
+        />
+      )}
+
+      {showRescueRequest && (
+        <RescueRequestModal
+          onClose={() => setShowRescueRequest(false)}
+          onSubmit={handleRescueRequest}
+        />
+      )}
+    </div>
+  );
+}
+
+function AddPetModal({ onClose, onSubmit }) {
+  const [formData, setFormData] = useState({
+    name: '',
+    species: '',
+    breed: '',
+    age: '',
+    image: ''
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-surface max-w-md w-full rounded-[2rem] p-8">
+        <h2 className="text-2xl font-bold text-on-surface mb-6">Add New Pet</h2>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-on-surface mb-2">Pet Name</label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full p-3 rounded-xl border border-surface-container focus:border-primary outline-none"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-on-surface mb-2">Species</label>
+            <input
+              type="text"
+              value={formData.species}
+              onChange={(e) => setFormData({ ...formData, species: e.target.value })}
+              className="w-full p-3 rounded-xl border border-surface-container focus:border-primary outline-none"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-on-surface mb-2">Breed</label>
+            <input
+              type="text"
+              value={formData.breed}
+              onChange={(e) => setFormData({ ...formData, breed: e.target.value })}
+              className="w-full p-3 rounded-xl border border-surface-container focus:border-primary outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-on-surface mb-2">Age</label>
+            <input
+              type="number"
+              value={formData.age}
+              onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+              className="w-full p-3 rounded-xl border border-surface-container focus:border-primary outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-on-surface mb-2">Image URL</label>
+            <input
+              type="url"
+              value={formData.image}
+              onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+              className="w-full p-3 rounded-xl border border-surface-container focus:border-primary outline-none"
+            />
+          </div>
+
+          <div className="flex gap-4 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-3 rounded-full border border-surface-container text-on-surface font-semibold hover:bg-surface-container-lowest transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 bg-primary text-white py-3 rounded-full font-bold hover:bg-primary/90 transition-colors"
+            >
+              Add Pet
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function BookAppointmentModal({ onClose, onSubmit, clinics, pets }) {
+  const [formData, setFormData] = useState({
+    pet: '',
+    clinic: '',
+    serviceName: '',
+    date: '',
+    timeSlot: ''
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-surface max-w-md w-full rounded-[2rem] p-8">
+        <h2 className="text-2xl font-bold text-on-surface mb-6">Book Appointment</h2>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-on-surface mb-2">Select Pet</label>
+            <select
+              value={formData.pet}
+              onChange={(e) => setFormData({ ...formData, pet: e.target.value })}
+              className="w-full p-3 rounded-xl border border-surface-container focus:border-primary outline-none"
+              required
+            >
+              <option value="">Choose a pet</option>
+              {pets.map((pet) => (
+                <option key={pet._id} value={pet._id}>{pet.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-on-surface mb-2">Select Clinic</label>
+            <select
+              value={formData.clinic}
+              onChange={(e) => setFormData({ ...formData, clinic: e.target.value })}
+              className="w-full p-3 rounded-xl border border-surface-container focus:border-primary outline-none"
+              required
+            >
+              <option value="">Choose a clinic</option>
+              {Array.isArray(clinics) && clinics.map((clinic) => (
+                <option key={clinic._id} value={clinic._id}>{clinic.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-on-surface mb-2">Service</label>
+            <input
+              type="text"
+              value={formData.serviceName}
+              onChange={(e) => setFormData({ ...formData, serviceName: e.target.value })}
+              placeholder="e.g., Check-up, Vaccination"
+              className="w-full p-3 rounded-xl border border-surface-container focus:border-primary outline-none"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-on-surface mb-2">Date</label>
+            <input
+              type="date"
+              value={formData.date}
+              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+              className="w-full p-3 rounded-xl border border-surface-container focus:border-primary outline-none"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-on-surface mb-2">Time Slot</label>
+            <select
+              value={formData.timeSlot}
+              onChange={(e) => setFormData({ ...formData, timeSlot: e.target.value })}
+              className="w-full p-3 rounded-xl border border-surface-container focus:border-primary outline-none"
+              required
+            >
+              <option value="">Choose time</option>
+              <option value="09:00">9:00 AM</option>
+              <option value="10:00">10:00 AM</option>
+              <option value="11:00">11:00 AM</option>
+              <option value="14:00">2:00 PM</option>
+              <option value="15:00">3:00 PM</option>
+              <option value="16:00">4:00 PM</option>
+            </select>
+          </div>
+
+          <div className="flex gap-4 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-3 rounded-full border border-surface-container text-on-surface font-semibold hover:bg-surface-container-lowest transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 bg-secondary text-white py-3 rounded-full font-bold hover:bg-secondary/90 transition-colors"
+            >
+              Book Appointment
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function RescueRequestModal({ onClose, onSubmit }) {
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    animalType: '',
+    priority: 'routine',
+    location: { coordinates: [0, 0] },
+    photo: ''
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-surface max-w-md w-full rounded-[2rem] p-8">
+        <h2 className="text-2xl font-bold text-on-surface mb-6">Raise Rescue Request</h2>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-on-surface mb-2">Title</label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              placeholder="Brief title for the rescue"
+              className="w-full p-3 rounded-xl border border-surface-container focus:border-primary outline-none"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-on-surface mb-2">Description</label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder="Describe the situation and animal condition"
+              className="w-full p-3 rounded-xl border border-surface-container focus:border-primary outline-none h-24 resize-none"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-on-surface mb-2">Animal Type</label>
+            <select
+              value={formData.animalType}
+              onChange={(e) => setFormData({ ...formData, animalType: e.target.value })}
+              className="w-full p-3 rounded-xl border border-surface-container focus:border-primary outline-none"
+              required
+            >
+              <option value="">Select animal type</option>
+              <option value="Dog">Dog</option>
+              <option value="Cat">Cat</option>
+              <option value="Bird">Bird</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-on-surface mb-2">Priority</label>
+            <select
+              value={formData.priority}
+              onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+              className="w-full p-3 rounded-xl border border-surface-container focus:border-primary outline-none"
+            >
+              <option value="routine">Routine</option>
+              <option value="stray_alert">Stray Alert</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-on-surface mb-2">Photo URL (optional)</label>
+            <input
+              type="url"
+              value={formData.photo}
+              onChange={(e) => setFormData({ ...formData, photo: e.target.value })}
+              placeholder="URL to photo of the animal"
+              className="w-full p-3 rounded-xl border border-surface-container focus:border-primary outline-none"
+            />
+          </div>
+
+          <div className="flex gap-4 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-3 rounded-full border border-surface-container text-on-surface font-semibold hover:bg-surface-container-lowest transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 bg-red-500 text-white py-3 rounded-full font-bold hover:bg-red-600 transition-colors"
+            >
+              Submit Request
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

@@ -6,6 +6,15 @@ import { Camera, MapPin, Search, AlertTriangle, ShieldCheck, Clock } from 'lucid
 export default function RescueCenter() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showRescueForm, setShowRescueForm] = useState(false);
+  const [rescueFormData, setRescueFormData] = useState({
+    title: '',
+    description: '',
+    animalType: '',
+    priority: 'routine',
+    photo: '',
+    location: { coordinates: [0, 0] }
+  });
 
   useEffect(() => {
     fetch('http://localhost:5000/api/rescue-requests/public')
@@ -19,6 +28,49 @@ export default function RescueCenter() {
         setLoading(false);
       });
   }, []);
+
+  const handleRescueSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!rescueFormData.title || !rescueFormData.description || !rescueFormData.animalType) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      const res = await fetch('http://localhost:5000/api/rescue-requests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('pawzz_token')}`
+        },
+        body: JSON.stringify(rescueFormData)
+      });
+
+      if (res.ok) {
+        alert('Rescue request submitted successfully!');
+        setRescueFormData({
+          title: '',
+          description: '',
+          animalType: '',
+          priority: 'routine',
+          photo: '',
+          location: { coordinates: [0, 0] }
+        });
+        setShowRescueForm(false);
+        // Refresh requests
+        fetch('http://localhost:5000/api/rescue-requests/public')
+          .then(res => res.json())
+          .then(data => setRequests(data));
+      } else {
+        const error = await res.json();
+        alert(`Submission failed: ${error.message}`);
+      }
+    } catch (err) {
+      console.error("Rescue submission error:", err);
+      alert('Submission failed. Please try again.');
+    }
+  };
 
   const activeRequests = requests.filter(r => r.status === 'pending');
   const ongoingRescues = requests.filter(r => r.status === 'accepted' || r.status === 'completed');
@@ -182,14 +234,72 @@ export default function RescueCenter() {
                </div>
 
                <div className="mb-6">
+                 <label className="text-[10px] font-bold text-on-surface/60 uppercase tracking-widest mb-2 block">Title</label>
+                 <input 
+                   type="text"
+                   value={rescueFormData.title}
+                   onChange={(e) => setRescueFormData({...rescueFormData, title: e.target.value})}
+                   className="w-full organic-input font-medium text-sm text-on-surface bg-surface-container-highest" 
+                   placeholder="Brief title for the rescue"
+                   required
+                 />
+               </div>
+
+               <div className="mb-6">
+                 <label className="text-[10px] font-bold text-on-surface/60 uppercase tracking-widest mb-2 block">Animal Type</label>
+                 <select 
+                   value={rescueFormData.animalType}
+                   onChange={(e) => setRescueFormData({...rescueFormData, animalType: e.target.value})}
+                   className="w-full organic-input font-medium text-sm text-on-surface bg-surface-container-highest"
+                   required
+                 >
+                   <option value="">Select animal type</option>
+                   <option value="Dog">Dog</option>
+                   <option value="Cat">Cat</option>
+                   <option value="Bird">Bird</option>
+                   <option value="Other">Other</option>
+                 </select>
+               </div>
+
+               <div className="mb-6">
+                 <label className="text-[10px] font-bold text-on-surface/60 uppercase tracking-widest mb-2 block">Priority</label>
+                 <select 
+                   value={rescueFormData.priority}
+                   onChange={(e) => setRescueFormData({...rescueFormData, priority: e.target.value})}
+                   className="w-full organic-input font-medium text-sm text-on-surface bg-surface-container-highest"
+                 >
+                   <option value="routine">Routine</option>
+                   <option value="stray_alert">Stray Alert</option>
+                   <option value="urgent">Urgent</option>
+                 </select>
+               </div>
+
+               <div className="mb-6">
+                 <label className="text-[10px] font-bold text-on-surface/60 uppercase tracking-widest mb-2 block">Photo URL (optional)</label>
+                 <input 
+                   type="url"
+                   value={rescueFormData.photo}
+                   onChange={(e) => setRescueFormData({...rescueFormData, photo: e.target.value})}
+                   className="w-full organic-input font-medium text-sm text-on-surface bg-surface-container-highest" 
+                   placeholder="URL to photo of the animal"
+                 />
+               </div>
+
+               <div className="mb-6">
                  <label className="text-[10px] font-bold text-on-surface/60 uppercase tracking-widest mb-2 block">Description</label>
                  <textarea 
+                   value={rescueFormData.description}
+                   onChange={(e) => setRescueFormData({...rescueFormData, description: e.target.value})}
                    className="w-full organic-input font-medium text-sm text-on-surface bg-surface-container-highest min-h-[100px] resize-none" 
                    placeholder="Details about behavior or injuries..."
+                   required
                  ></textarea>
                </div>
 
-               <button className="btn-primary w-full py-3 text-sm shadow-ambient hover:-translate-y-1 transition-all">
+               <button 
+                 onClick={handleRescueSubmit}
+                 className="btn-primary w-full py-3 text-sm shadow-ambient hover:-translate-y-1 transition-all"
+               >
                  Submit Emergency Alert
                </button>
             </div>
