@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PawPrint, Mail, Lock, User, Shield, ChevronRight } from 'lucide-react';
+import { PawPrint, Mail, Lock, User, Shield, ChevronRight, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function Auth() {
