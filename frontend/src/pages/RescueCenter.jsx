@@ -1,9 +1,35 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import { Camera, MapPin, Search, AlertTriangle, ShieldCheck, Clock } from 'lucide-react';
 
 export default function RescueCenter() {
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/rescue-requests/public')
+      .then(res => res.json())
+      .then(data => {
+        setRequests(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to load rescues:", err);
+        setLoading(false);
+      });
+  }, []);
+
+  const activeRequests = requests.filter(r => r.status === 'pending');
+  const ongoingRescues = requests.filter(r => r.status === 'accepted' || r.status === 'completed');
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-surface flex flex-col justify-center items-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen bg-surface selection:bg-primary-container selection:text-white flex flex-col pt-24">
       <Navbar />
@@ -43,59 +69,40 @@ export default function RescueCenter() {
                  <ShieldCheck className="w-5 h-5 text-on-surface" />
               </div>
               <h3 className="font-bold text-lg text-on-surface">Active Requests</h3>
-              <span className="bg-surface-container text-xs font-bold px-2 py-1 rounded-full text-on-surface/60 ml-auto">12 NEARBY</span>
+              <span className="bg-surface-container text-xs font-bold px-2 py-1 rounded-full text-on-surface/60 ml-auto">{activeRequests.length} NEARBY</span>
             </div>
 
-            {/* Request Card 1 (Delhi specific styling based on seeder) */}
-            <div className="bg-surface-container-lowest p-5 rounded-3xl border-l-[6px] border-secondary shadow-sm relative overflow-hidden group hover:shadow-ambient transition-all cursor-pointer">
-              <div className="flex justify-between items-center mb-3">
-                 <span className="bg-secondary/10 text-secondary text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-full">URGENT</span>
-                 <span className="text-xs text-on-surface/50 font-bold">2 mins ago</span>
-              </div>
-              <h4 className="font-bold text-on-surface text-lg mb-1 leading-tight">Injured Golden Retriever</h4>
-              <p className="text-xs text-on-surface/60 font-medium flex items-center gap-1 mb-3">
-                <MapPin className="w-3 h-3" /> India Gate Area, New Delhi
-              </p>
-              <p className="text-sm text-on-surface/70 italic font-serif leading-relaxed mb-4">
-                "Limping near the fountains, looks dehydrated and scared."
-              </p>
-              <div className="text-xs font-bold text-on-surface hover:text-primary transition-colors flex justify-end items-center gap-1">
-                 View Details <span className="text-[10px]">›</span>
-              </div>
-            </div>
+            {/* Dynamic Map of Active Requests */}
+            {activeRequests.map((req, idx) => {
+              
+              // Dynamic coloring based on priority
+              const priorityColors = {
+                urgent: { border: 'border-secondary', bg: 'bg-secondary/10', text: 'text-secondary', label: 'URGENT' },
+                stray_alert: { border: 'border-orange-400', bg: 'bg-orange-400/10', text: 'text-orange-600', label: 'STRAY ALERT' },
+                routine: { border: 'border-blue-400', bg: 'bg-blue-400/10', text: 'text-blue-600', label: 'ROUTINE' }
+              };
+              
+              const style = priorityColors[req.priority] || priorityColors.routine;
 
-            {/* Request Card 2 */}
-            <div className="bg-surface-container-lowest p-5 rounded-3xl border-l-[6px] border-orange-400 shadow-sm relative overflow-hidden group hover:shadow-ambient transition-all cursor-pointer">
-              <div className="flex justify-between items-center mb-3">
-                 <span className="bg-orange-400/10 text-orange-600 text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-full">STRAY ALERT</span>
-                 <span className="text-xs text-on-surface/50 font-bold">15 mins ago</span>
-              </div>
-              <h4 className="font-bold text-on-surface text-lg mb-1 leading-tight">Abandoned Calico Kittens</h4>
-              <p className="text-xs text-on-surface/60 font-medium flex items-center gap-1 mb-3">
-                <MapPin className="w-3 h-3" /> Qutub Minar Complex
-              </p>
-              <p className="text-sm text-on-surface/70 italic font-serif leading-relaxed mb-4">
-                "Box of 4 kittens left outside the closed shop."
-              </p>
-              <div className="text-xs font-bold text-on-surface hover:text-primary transition-colors flex justify-end items-center gap-1">
-                 View Details <span className="text-[10px]">›</span>
-              </div>
-            </div>
-
-            {/* Request Card 3 */}
-            <div className="bg-surface-container-lowest p-5 rounded-3xl border-l-[6px] border-blue-400 shadow-sm relative overflow-hidden group hover:shadow-ambient transition-all cursor-pointer">
-              <div className="flex justify-between items-center mb-3">
-                 <span className="bg-blue-400/10 text-blue-600 text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-full">ROUTINE</span>
-                 <span className="text-xs text-on-surface/50 font-bold">1 hour ago</span>
-              </div>
-              <h4 className="font-bold text-on-surface text-lg mb-1 leading-tight">Senior Indie Found</h4>
-              <p className="text-xs text-on-surface/60 font-medium flex items-center gap-1 mb-3">
-                <MapPin className="w-3 h-3" /> Connaught Place Inner Circle
-              </p>
-              <div className="text-xs font-bold text-on-surface hover:text-primary transition-colors flex justify-end items-center gap-1">
-                 View Details <span className="text-[10px]">›</span>
-              </div>
-            </div>
+              return (
+                <div key={req._id || idx} className={`bg-surface-container-lowest p-5 rounded-3xl border-l-[6px] ${style.border} shadow-sm relative overflow-hidden group hover:shadow-ambient transition-all cursor-pointer`}>
+                  <div className="flex justify-between items-center mb-3">
+                    <span className={`${style.bg} ${style.text} text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-full`}>{style.label}</span>
+                    <span className="text-xs text-on-surface/50 font-bold">New</span>
+                  </div>
+                  <h4 className="font-bold text-on-surface text-lg mb-1 leading-tight">{req.title || req.animalType}</h4>
+                  <p className="text-xs text-on-surface/60 font-medium flex items-center gap-1 mb-3">
+                    <MapPin className="w-3 h-3" /> User Reported Location
+                  </p>
+                  <p className="text-sm text-on-surface/70 italic font-serif leading-relaxed mb-4">
+                    "{req.description}"
+                  </p>
+                  <div className="text-xs font-bold text-on-surface hover:text-primary transition-colors flex justify-end items-center gap-1">
+                    View Details <span className="text-[10px]">›</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           {/* Middle Column: Interactive OpenStreetMap (Delhi Focus) */}
@@ -138,25 +145,17 @@ export default function RescueCenter() {
                <h3 className="font-bold text-xl text-on-surface mb-6">Ongoing Rescues</h3>
                
                <div className="relative border-l-2 border-surface-container-highest ml-3 pl-6 pb-6 space-y-6">
-                 {/* Item 1 */}
-                 <div className="relative">
-                    <div className="absolute -left-[35px] top-0 w-6 h-6 bg-primary rounded-full flex items-center justify-center border-4 border-surface-container-lowest">
-                      <Clock className="w-3 h-3 text-white" />
-                    </div>
-                    <span className="text-[10px] font-black text-on-surface/40 uppercase tracking-widest block mb-1">RESCUE IN PROGRESS</span>
-                    <h5 className="font-bold text-sm text-on-surface mb-1">Siberian Husky - Main St.</h5>
-                    <p className="text-xs text-on-surface/60 font-medium">Rescuer 'Marcus' has arrived on site.</p>
-                 </div>
-
-                 {/* Item 2 */}
-                 <div className="relative">
-                    <div className="absolute -left-[35px] top-0 w-6 h-6 bg-secondary rounded-full flex items-center justify-center border-4 border-surface-container-lowest">
-                       <Clock className="w-3 h-3 text-white" />
-                    </div>
-                    <span className="text-[10px] font-black text-on-surface/40 uppercase tracking-widest block mb-1">EN ROUTE TO VET</span>
-                    <h5 className="font-bold text-sm text-on-surface mb-1">Injured Tabby Cat</h5>
-                    <p className="text-xs text-on-surface/60 font-medium">Transporting to Sanctuary Hospital.</p>
-                 </div>
+                 {ongoingRescues.length === 0 && <p className="text-sm text-on-surface/60 italic">No ongoing rescues at the moment.</p>}
+                 {ongoingRescues.map((rescue, idx) => (
+                   <div key={idx} className="relative">
+                      <div className="absolute -left-[35px] top-0 w-6 h-6 bg-primary rounded-full flex items-center justify-center border-4 border-surface-container-lowest">
+                        <Clock className="w-3 h-3 text-white" />
+                      </div>
+                      <span className="text-[10px] font-black text-on-surface/40 uppercase tracking-widest block mb-1">RESCUE IN PROGRESS</span>
+                      <h5 className="font-bold text-sm text-on-surface mb-1">{rescue.title || rescue.animalType}</h5>
+                      <p className="text-xs text-on-surface/60 font-medium">Rescuer has been dispatched to site.</p>
+                   </div>
+                 ))}
                </div>
             </div>
 

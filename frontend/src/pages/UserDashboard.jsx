@@ -1,13 +1,41 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import { 
-  LayoutGrid, PawPrint, Calendar, Bookmark, Settings, 
+  LayoutGrid, PawPrint, Calendar as CalendarIcon, Bookmark, Settings, 
   MapPin, Clock, AlertTriangle, Syringe, Heart, FileText, 
   AlertCircle, Info, Bell 
 } from 'lucide-react';
 
 export default function UserDashboard() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetching the dynamic aggregations for prototyped user 'Sarah'
+    fetch('http://localhost:5000/api/dashboard/sarah@example.com')
+      .then(res => res.json())
+      .then(json => {
+        setData(json);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Dashboard fetch error:", err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading || !data) {
+    return (
+      <div className="min-h-screen bg-surface flex flex-col justify-center items-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  const { user, pets, appointments, careTimeline } = data;
+  const nextAppt = appointments && appointments.length > 0 ? appointments[0] : null;
+
   return (
     <div className="min-h-screen bg-surface selection:bg-primary-container selection:text-white flex flex-col pt-32">
       <Navbar />
@@ -26,7 +54,7 @@ export default function UserDashboard() {
                 <PawPrint className="w-5 h-5" /> My Pets
               </a>
               <a href="#" className="flex items-center gap-3 px-4 py-3 hover:bg-surface-container-lowest rounded-2xl text-on-surface/70 font-semibold hover:text-on-surface transition-colors">
-                <Calendar className="w-5 h-5" /> Booking History
+                <CalendarIcon className="w-5 h-5" /> Booking History
               </a>
               <a href="#" className="flex items-center gap-3 px-4 py-3 hover:bg-surface-container-lowest rounded-2xl text-on-surface/70 font-semibold hover:text-on-surface transition-colors">
                 <Bookmark className="w-5 h-5" /> Saved Clinics
@@ -44,7 +72,7 @@ export default function UserDashboard() {
             
             {/* Header */}
             <div>
-              <h1 className="text-4xl font-extrabold text-on-surface mb-2 tracking-tight">Welcome back, Sarah</h1>
+              <h1 className="text-4xl font-extrabold text-on-surface mb-2 tracking-tight">Welcome back, {user.name.split(' ')[0]}</h1>
               <p className="text-on-surface/60 font-medium text-lg">Your companions are in good hands today. Here's what's happening.</p>
             </div>
 
@@ -52,25 +80,31 @@ export default function UserDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               
               {/* Upcoming Appointment - Wide Card */}
-              <div className="md:col-span-2 bg-[#647C66] text-white p-8 rounded-[2rem] shadow-ambient relative overflow-hidden flex flex-col justify-between min-h-[220px]">
-                <div>
-                  <span className="inline-block bg-white/20 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">Upcoming Appointment</span>
-                  <h2 className="text-3xl font-bold mb-6">Oliver's Annual Wellness Exam</h2>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 opacity-90">
-                  <div className="flex items-center gap-2 font-medium text-sm">
-                    <MapPin className="w-4 h-4" /> Green Valley Veterinary Clinic
+              {nextAppt ? (
+                <div className="md:col-span-2 bg-[#647C66] text-white p-8 rounded-[2rem] shadow-ambient relative overflow-hidden flex flex-col justify-between min-h-[220px]">
+                  <div>
+                    <span className="inline-block bg-white/20 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">Upcoming Appointment</span>
+                    <h2 className="text-3xl font-bold mb-6">Oliver's {nextAppt.serviceName}</h2>
                   </div>
-                  <div className="flex items-center gap-2 font-medium text-sm">
-                    <Clock className="w-4 h-4" /> Tomorrow, 10:30 AM
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 opacity-90">
+                    <div className="flex items-center gap-2 font-medium text-sm">
+                      <MapPin className="w-4 h-4" /> {nextAppt.clinic?.name || 'Veterinary Clinic'}
+                    </div>
+                    <div className="flex items-center gap-2 font-medium text-sm">
+                      <Clock className="w-4 h-4" /> {new Date(nextAppt.date).toLocaleDateString()}, {nextAppt.timeSlot}
+                    </div>
+                  </div>
+                  <div className="mt-8">
+                    <button className="bg-white text-[#647C66] px-6 py-2.5 rounded-full font-bold text-sm hover:bg-surface transition-colors shadow-sm">
+                      View Details
+                    </button>
                   </div>
                 </div>
-                <div className="mt-8">
-                  <button className="bg-white text-[#647C66] px-6 py-2.5 rounded-full font-bold text-sm hover:bg-surface transition-colors shadow-sm">
-                    View Details
-                  </button>
+              ) : (
+                <div className="md:col-span-2 bg-surface-container-low text-on-surface/60 p-8 rounded-[2rem] shadow-ambient flex flex-col items-center justify-center min-h-[220px]">
+                  <p className="font-bold">No upcoming appointments.</p>
                 </div>
-              </div>
+              )}
 
               {/* Active Report Card */}
               <div className="md:col-span-1 bg-[#F69C7E] text-[#4A2012] p-8 rounded-[2rem] shadow-ambient flex flex-col justify-between min-h-[220px]">
@@ -82,7 +116,7 @@ export default function UserDashboard() {
                 </div>
                 <div className="mb-6">
                   <h3 className="text-2xl font-bold mb-1">Stray Golden Retriever</h3>
-                  <p className="text-sm opacity-80 font-medium">Report #8829 • Oak Ridge Sector</p>
+                  <p className="text-sm opacity-80 font-medium">Report #8829</p>
                 </div>
                 <div>
                   <div className="w-full bg-[#4A2012]/20 h-1.5 rounded-full mb-2 overflow-hidden">
@@ -102,60 +136,47 @@ export default function UserDashboard() {
                 
                 <div className="relative pl-6 border-l-2 border-surface-container-highest space-y-10">
                   
-                  {/* Timeline Item 1 */}
-                  <div className="relative">
-                    <div className="absolute -left-[35px] top-0 w-8 h-8 bg-[#52879E] rounded-full flex items-center justify-center border-4 border-surface shadow-sm">
-                      <Syringe className="w-3 h-3 text-white" />
-                    </div>
-                    <div className="bg-surface-container-lowest p-6 rounded-3xl shadow-sm hover:shadow-ambient transition-shadow border-none ml-2">
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-bold text-lg text-on-surface">Vaccination Administered</h4>
-                        <span className="text-xs font-semibold text-on-surface/50">2h ago</span>
-                      </div>
-                      <p className="text-on-surface/70 text-sm leading-relaxed mb-4">
-                        Luna received her Rabies and DHPP boosters. No immediate side effects observed.
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 bg-surface-container-highest rounded-full overflow-hidden flex items-center justify-center">
-                          <img src="https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&q=80&w=100" className="w-full h-full object-cover" alt="Luna" />
+                  {careTimeline.length === 0 && <p className="text-sm text-on-surface/60 italic">No care records logged yet.</p>}
+
+                  {careTimeline.map((record, idx) => {
+                    let Icon = FileText;
+                    let bgCol = "bg-surface-container-highest";
+                    let iconCol = "text-on-surface/70";
+                    let borderCol = "border-surface";
+
+                    if (record.eventType === 'vaccination') {
+                      Icon = Syringe; bgCol = "bg-[#52879E]"; iconCol = "text-white"; 
+                    } else if (record.eventType === 'anniversary') {
+                      Icon = Heart; bgCol = "bg-[#A05C33]"; iconCol = "text-white fill-white";
+                    }
+
+                    return (
+                      <div key={record._id || idx} className="relative">
+                        <div className={`absolute -left-[35px] top-0 w-8 h-8 ${bgCol} rounded-full flex items-center justify-center border-4 ${borderCol} shadow-sm`}>
+                          <Icon className={`w-3 h-3 ${iconCol}`} />
                         </div>
-                        <span className="text-[10px] font-bold text-on-surface/60 uppercase tracking-widest">Patient: Luna</span>
+                        <div className="bg-surface-container-lowest p-6 rounded-3xl shadow-sm hover:shadow-ambient transition-shadow border-none ml-2">
+                          <div className="flex justify-between items-start mb-2">
+                            <h4 className="font-bold text-lg text-on-surface">{record.title}</h4>
+                            <span className="text-xs font-semibold text-on-surface/50">
+                              {new Date(record.date).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="text-on-surface/70 text-sm leading-relaxed mb-4">
+                            {record.description}
+                          </p>
+                          {record.pet && (
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 bg-surface-container-highest rounded-full overflow-hidden flex items-center justify-center">
+                                <img src={record.pet.image} className="w-full h-full object-cover" alt={record.pet.name} />
+                              </div>
+                              <span className="text-[10px] font-bold text-on-surface/60 uppercase tracking-widest">Patient: {record.pet.name}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </div>
-
-                  {/* Timeline Item 2 */}
-                  <div className="relative">
-                    <div className="absolute -left-[35px] top-0 w-8 h-8 bg-[#A05C33] rounded-full flex items-center justify-center border-4 border-surface shadow-sm">
-                      <Heart className="w-3 h-3 text-white fill-white" />
-                    </div>
-                    <div className="bg-surface-container-lowest p-6 rounded-3xl shadow-sm hover:shadow-ambient transition-shadow border-none ml-2">
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-bold text-lg text-on-surface">Adoption Anniversary</h4>
-                        <span className="text-xs font-semibold text-on-surface/50">Yesterday</span>
-                      </div>
-                      <p className="text-on-surface/70 text-sm leading-relaxed">
-                        It's been 2 years since Cooper joined the family! Check out our memory gallery.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Timeline Item 3 */}
-                  <div className="relative">
-                    <div className="absolute -left-[35px] top-0 w-8 h-8 bg-surface-container-highest rounded-full flex items-center justify-center border-4 border-surface shadow-sm">
-                      <FileText className="w-3 h-3 text-on-surface/70" />
-                    </div>
-                    <div className="bg-surface-container-lowest p-6 rounded-3xl shadow-sm hover:shadow-ambient transition-shadow border-none ml-2">
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-bold text-lg text-on-surface">Medical Records Updated</h4>
-                        <span className="text-xs font-semibold text-on-surface/50">Oct 12</span>
-                      </div>
-                      <p className="text-on-surface/70 text-sm leading-relaxed">
-                        Bloodwork results from Oliver's last visit have been uploaded by Dr. Aris.
-                      </p>
-                    </div>
-                  </div>
-
+                    );
+                  })}
                 </div>
               </div>
 
@@ -190,24 +211,17 @@ export default function UserDashboard() {
                 <div>
                   <h3 className="text-xl font-bold text-on-surface mb-6">My Companions</h3>
                   <div className="grid grid-cols-2 gap-4">
+                    {pets.length === 0 && <p className="text-sm col-span-2 text-on-surface/60 italic">No companions registered.</p>}
                     
-                    {/* Companion 1 */}
-                    <div className="bg-surface-container-lowest p-3 rounded-[2rem] shadow-sm hover:shadow-ambient transition-shadow text-center">
-                      <div className="aspect-square w-full rounded-2xl overflow-hidden mb-3 bg-surface-container">
-                        <img src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=300" alt="Oliver" className="w-full h-full object-cover" />
+                    {pets.map((pet, idx) => (
+                      <div key={pet._id || idx} className="bg-surface-container-lowest p-3 rounded-[2rem] shadow-sm hover:shadow-ambient transition-shadow text-center">
+                        <div className="aspect-square w-full rounded-2xl overflow-hidden mb-3 bg-surface-container">
+                          <img src={pet.image} alt={pet.name} className="w-full h-full object-cover" />
+                        </div>
+                        <h5 className="font-bold text-on-surface">{pet.name}</h5>
+                        <p className="text-[9px] font-bold text-on-surface/50 uppercase tracking-widest mt-1">{pet.breed || pet.species}</p>
                       </div>
-                      <h5 className="font-bold text-on-surface">Oliver</h5>
-                      <p className="text-[9px] font-bold text-on-surface/50 uppercase tracking-widest mt-1">Labrador</p>
-                    </div>
-
-                    {/* Companion 2 */}
-                    <div className="bg-surface-container-lowest p-3 rounded-[2rem] shadow-sm hover:shadow-ambient transition-shadow text-center">
-                      <div className="aspect-square w-full rounded-2xl overflow-hidden mb-3 bg-surface-container">
-                        <img src="https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&q=80&w=300" alt="Luna" className="w-full h-full object-cover" />
-                      </div>
-                      <h5 className="font-bold text-on-surface">Luna</h5>
-                      <p className="text-[9px] font-bold text-on-surface/50 uppercase tracking-widest mt-1">Shorthair</p>
-                    </div>
+                    ))}
 
                   </div>
                 </div>

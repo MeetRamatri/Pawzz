@@ -39,12 +39,23 @@ export default function ClinicProfile() {
     );
   }
 
-  // Parse strings "Vaccination (₹800)" into { title: "Vaccination", price: "₹800" } 
+  // Map through dynamic services natively resolving to DB objects or fallback to string parser
   const servicesList = clinic.services && clinic.services.length > 0 
-    ? clinic.services.map(s => ({ 
-        title: s.split(' (')[0].trim(), 
-        price: s.includes('(') ? s.split('(')[1].replace(')', '') : 'Price varies' 
-      }))
+    ? clinic.services.map(s => {
+        if (typeof s === 'string') {
+          return {
+            title: s.split(' (')[0].trim(),
+            price: s.includes('(') ? s.split('(')[1].replace(')', '') : 'Price varies',
+            description: 'High quality veterinary procedures utilizing modern sanitary technology.'
+          };
+        } else {
+          return {
+            title: s.name,
+            price: `₹${s.price}`,
+            description: s.description || 'High quality veterinary procedure.'
+          };
+        }
+      })
     : [];
 
   return (
@@ -130,7 +141,7 @@ export default function ClinicProfile() {
                        <Stethoscope className="w-5 h-5 opacity-70" />
                     </div>
                     <h3 className="text-xl font-bold mb-2">{service.title}</h3>
-                    <p className="text-sm text-on-surface/60 mb-6 line-clamp-2">High quality veterinary procedures utilizing modern sanitary technology.</p>
+                    <p className="text-sm text-on-surface/60 mb-6 line-clamp-2">{service.description}</p>
                     <p className="font-bold text-lg text-primary">{service.price}</p>
                     
                     <button className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center bg-surface-container-lowest rounded-full hover:bg-surface shadow-sm text-on-surface/40 hover:text-primary transition-colors">
