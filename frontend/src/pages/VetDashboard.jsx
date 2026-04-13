@@ -4,7 +4,7 @@ import Footer from '../components/layout/Footer';
 import {
   LayoutGrid, PawPrint, Calendar as CalendarIcon, Bookmark, Settings,
   MapPin, Clock, AlertTriangle, Syringe, Heart, FileText,
-  AlertCircle, Info, Bell, Plus, Edit, DollarSign, Star
+  AlertCircle, Info, Bell, Plus, Edit, DollarSign, Star, Trash2
 } from 'lucide-react';
 
 export default function VetDashboard() {
@@ -81,6 +81,11 @@ export default function VetDashboard() {
     if (!user) return;
 
     try {
+      const formattedServices = clinicData.services.map(s => ({
+        ...s,
+        price: parseFloat(s.price) || 0
+      }));
+
       const res = await fetch('http://localhost:5000/api/clinics', {
         method: 'POST',
         headers: {
@@ -89,6 +94,7 @@ export default function VetDashboard() {
         },
         body: JSON.stringify({
           ...clinicData,
+          services: formattedServices,
           owner: user._id,
           location: {
             type: 'Point',
@@ -101,9 +107,13 @@ export default function VetDashboard() {
         const newClinic = await res.json();
         setClinics([...clinics, newClinic]);
         setShowAddClinic(false);
+      } else {
+        const errorData = await res.json();
+        alert('Server Error: ' + errorData.message);
       }
     } catch (err) {
       console.error("Add clinic error:", err);
+      alert('Network/Client Error: ' + err.message);
     }
   };
 
@@ -131,6 +141,32 @@ export default function VetDashboard() {
       }
     } catch (err) {
       console.error("Update service error:", err);
+    }
+  };
+
+  const handleDeleteClinic = async (clinicId) => {
+    if (!window.confirm("Are you sure you want to delete this clinic? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/clinics/${clinicId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('pawzz_token')}`
+        }
+      });
+
+      if (res.ok) {
+        setClinics(clinics.filter(c => c._id !== clinicId));
+        alert("Clinic successfully deleted.");
+      } else {
+        const errorData = await res.json();
+        alert('Server Error: ' + errorData.message);
+      }
+    } catch (err) {
+      console.error("Delete clinic error:", err);
+      alert('Network Error: ' + err.message);
     }
   };
 
@@ -230,9 +266,18 @@ export default function VetDashboard() {
                     )}
                   </div>
 
-                  <button className="w-full bg-primary text-white py-2 rounded-full font-bold hover:bg-primary/90 transition-colors">
-                    Manage Clinic
-                  </button>
+                  <div className="flex gap-3">
+                    <button className="flex-1 bg-primary text-white py-2 rounded-full font-bold hover:bg-primary/90 transition-colors">
+                      Manage Clinic
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteClinic(clinic._id)}
+                      className="w-10 h-10 flex items-center justify-center bg-red-100 text-red-600 rounded-full hover:bg-red-200 transition-colors shrink-0"
+                      title="Delete Clinic"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
               ))}
 

@@ -91,10 +91,30 @@ const getMyClinics = async (req, res) => {
   }
 };
 
+const deleteClinic = async (req, res) => {
+  try {
+    const clinic = await Clinic.findById(req.params.id);
+
+    if (!clinic) {
+      return res.status(404).json({ message: 'Clinic not found' });
+    }
+
+    if (clinic.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized to delete this clinic' });
+    }
+
+    await Clinic.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Clinic removed successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createClinic,
   getClinics,
   getClinicById,
   updateClinic,
   getMyClinics,
+  deleteClinic,
 };
