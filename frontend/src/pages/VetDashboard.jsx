@@ -12,6 +12,7 @@ export default function VetDashboard() {
   const [loading, setLoading] = useState(true);
   const [showAddClinic, setShowAddClinic] = useState(false);
   const [clinics, setClinics] = useState([]);
+  const [appointments, setAppointments] = useState([]);
 
   useEffect(() => {
     const authData = localStorage.getItem('pawzz_user');
@@ -37,11 +38,27 @@ export default function VetDashboard() {
           // Ensure data is an array
           const clinicsArray = Array.isArray(data) ? data : [];
           setClinics(clinicsArray);
-          setLoading(false);
         })
         .catch(err => {
           console.error("Clinics fetch error:", err);
           setClinics([]);
+        });
+
+      // Fetch vet's incoming appointments
+      fetch(`http://localhost:5000/api/appointments/vet`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('pawzz_token')}`
+        }
+      })
+        .then(res => res.json())
+        .then(data => {
+          const apptsArray = Array.isArray(data) ? data : [];
+          setAppointments(apptsArray);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error("Appointments fetch error:", err);
+          setAppointments([]);
           setLoading(false);
         });
     } else {
@@ -72,7 +89,11 @@ export default function VetDashboard() {
         },
         body: JSON.stringify({
           ...clinicData,
-          owner: user._id
+          owner: user._id,
+          location: {
+            type: 'Point',
+            coordinates: clinicData.location.coordinates
+          }
         })
       });
 
@@ -222,6 +243,35 @@ export default function VetDashboard() {
                   <p className="text-on-surface/40">Add your first clinic to get started</p>
                 </div>
               )}
+            </div>
+
+            {/* Appointments Grid */}
+            <div className="mt-12 border-t border-surface-container-highest/20 pt-10">
+              <h2 className="text-2xl font-bold text-on-surface mb-6">Incoming Appointments</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {appointments.map(appt => (
+                   <div key={appt._id} className="bg-surface-container-lowest p-6 rounded-3xl shadow-ambient border-l-[6px] border-secondary">
+                     <div className="flex justify-between items-start mb-2">
+                       <p className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/10 px-2 py-1 rounded-full">
+                         {new Date(appt.date).toLocaleDateString()} @ {appt.timeSlot}
+                       </p>
+                       <span className="text-[10px] font-bold text-on-surface/60 bg-surface px-2 py-1 rounded-full">{appt.status}</span>
+                     </div>
+                     <h4 className="text-lg font-bold text-on-surface mb-1">{appt.pet?.name || 'Unknown Pet'} ({appt.pet?.species})</h4>
+                     <p className="text-sm text-on-surface/60 mb-3">Owner: {appt.user?.name}</p>
+                     
+                     <div className="bg-surface-container p-3 rounded-xl mt-auto">
+                       <p className="text-xs font-bold text-on-surface/50 mb-1">SERVICE REQUESTED</p>
+                       <p className="text-sm font-semibold text-secondary">{appt.serviceName}</p>
+                     </div>
+                   </div>
+                 ))}
+                 {appointments.length === 0 && (
+                   <div className="col-span-full text-center py-8 text-on-surface/40 border-2 border-dashed border-surface-container-highest rounded-3xl">
+                     <p>No incoming appointments yet.</p>
+                   </div>
+                 )}
+              </div>
             </div>
 
           </div>

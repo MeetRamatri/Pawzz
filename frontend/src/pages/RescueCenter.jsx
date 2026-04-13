@@ -44,7 +44,13 @@ export default function RescueCenter() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('pawzz_token')}`
         },
-        body: JSON.stringify(rescueFormData)
+        body: JSON.stringify({
+          ...rescueFormData,
+          location: {
+            type: 'Point',
+            coordinates: rescueFormData.location.coordinates
+          }
+        })
       });
 
       if (res.ok) {

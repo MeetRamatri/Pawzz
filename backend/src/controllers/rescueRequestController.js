@@ -5,12 +5,16 @@ const RescueRequest = require('../models/RescueRequest');
 // @access  Private
 const createRescueRequest = async (req, res) => {
   try {
-    const { location, description } = req.body;
+    const { location, description, title, animalType, priority, photo } = req.body;
 
     const request = await RescueRequest.create({
       user: req.user._id,
       location,
       description,
+      title,
+      animalType,
+      priority,
+      photo
     });
 
     res.status(201).json(request);
