@@ -92,7 +92,7 @@ export default function Auth() {
               <span className="font-heading font-bold text-2xl tracking-tight text-white">Pawzz</span>
             </div>
             <h1 className="text-4xl font-extrabold leading-tight mb-4">
-              Enter The <br/><span className="text-[#F69C7E]">Sanctuary</span>
+              Welcome to <br/><span className="text-[#F69C7E]">Pawzz</span>
             </h1>
             <p className="text-white/80 font-medium text-lg max-w-sm">
               Your central hub for dedicated pet care, medical tracing, and emergency rescue coordination.
