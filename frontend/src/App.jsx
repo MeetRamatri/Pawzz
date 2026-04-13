@@ -254,25 +254,25 @@ const ProtectedRoute = ({ children }) => {
   if (!token) {
     return <Navigate to="/login" replace />;
   }
+  return children;
+};
 
-  // Check user role and redirect to appropriate dashboard
+const DashboardRouter = () => {
+  const token = localStorage.getItem('pawzz_token');
+  if (!token) return <Navigate to="/login" replace />;
+
   const userData = localStorage.getItem('pawzz_user');
   if (userData) {
     try {
       const user = JSON.parse(userData);
-      if (user.role === 'vet') {
-        return <Navigate to="/dashboard/vet" replace />;
-      } else if (user.role === 'rescuer') {
-        return <Navigate to="/dashboard/rescuer" replace />;
-      } else if (user.role === 'user') {
-        return <Navigate to="/dashboard/user" replace />;
-      }
+      if (user.role === 'vet') return <Navigate to="/dashboard/vet" replace />;
+      if (user.role === 'rescuer') return <Navigate to="/dashboard/rescuer" replace />;
+      return <Navigate to="/dashboard/user" replace />;
     } catch (e) {
       console.error("User data parsing error", e);
     }
   }
-
-  return children;
+  return <Navigate to="/login" replace />;
 };
 
 export default function App() {
@@ -286,7 +286,7 @@ export default function App() {
         <Route path="/clinics" element={<ProtectedRoute><FindVets /></ProtectedRoute>} />
         <Route path="/clinics/:id" element={<ProtectedRoute><ClinicProfile /></ProtectedRoute>} />
         <Route path="/rescue" element={<ProtectedRoute><RescueCenter /></ProtectedRoute>} />
-        <Route path="/dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<DashboardRouter />} />
         <Route path="/dashboard/user" element={<UserDashboard />} />
         <Route path="/dashboard/vet" element={<VetDashboard />} />
         <Route path="/dashboard/rescuer" element={<RescuerDashboard />} />

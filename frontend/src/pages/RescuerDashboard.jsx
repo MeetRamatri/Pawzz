@@ -4,7 +4,7 @@ import Footer from '../components/layout/Footer';
 import {
   LayoutGrid, PawPrint, Calendar as CalendarIcon, Bookmark, Settings,
   MapPin, Clock, AlertTriangle, Syringe, Heart, FileText,
-  AlertCircle, Info, Bell, Check, X, Navigation, Power
+  AlertCircle, Info, Bell, Check, X, Navigation, Power, Star
 } from 'lucide-react';
 
 export default function RescuerDashboard() {
@@ -34,8 +34,8 @@ export default function RescuerDashboard() {
         })
         .catch(err => console.error("Rescuer profile fetch error:", err));
 
-      // Fetch rescue requests
-      fetch('http://localhost:5000/api/rescue-requests')
+      // Fetch rescue requests (Using public endpoint to gather all pending/accepted pool)
+      fetch('http://localhost:5000/api/rescue-requests/public')
         .then(res => res.json())
         .then(data => {
           // Ensure data is an array

@@ -27,9 +27,15 @@ const Navbar = () => {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-12">
-            <Link to="/clinics" className="text-on-surface/60 hover:text-primary font-medium transition-colors text-sm">Find Vets</Link>
-            <Link to="/rescue" className="text-on-surface/60 hover:text-primary font-medium transition-colors text-sm">Rescue</Link>
-            <Link to="/dashboard" className="text-on-surface/60 hover:text-primary font-medium transition-colors text-sm">My Dashboard</Link>
+            {(!user || user.role === 'user') && (
+              <Link to="/clinics" className="text-on-surface/60 hover:text-primary font-medium transition-colors text-sm">Find Vets</Link>
+            )}
+            {(!user || user.role === 'user' || user.role === 'rescuer') && (
+              <Link to="/rescue" className="text-on-surface/60 hover:text-primary font-medium transition-colors text-sm">Rescue</Link>
+            )}
+            {user && (
+              <Link to="/dashboard" className="text-on-surface/60 hover:text-primary font-medium transition-colors text-sm">My Dashboard</Link>
+            )}
           </div>
 
           {/* User Actions */}
